@@ -135,7 +135,7 @@ function drawTilePreview(ctx,tile,x,y,scale){
   }
   ctx.drawImage(pic,x,y,sz,sz);
 }
-function hexRGB(h){h=h.replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16)];}
+function hexRGB(h){h=h.replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
 function ringDimensions(size,hole){
   const inner=size<=30?1.8:2.5, outer=size<=30?4:5.5;
   // Keep both vertical legs above the frame's straight top edge, not its corners.
