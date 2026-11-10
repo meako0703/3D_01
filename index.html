@@ -14,7 +14,7 @@ header{background:#fff;border-bottom:1px solid var(--line);padding:19px 30px;dis
 <div class="layout">
 <aside class="panel"><div class="panel-header"><h2>建立字牌</h2><span class="pill">STEP 1</span></div><div class="panel-body">
 <label class="section-label">輸入文字</label><div class="textline"><input id="textInput" type="text" placeholder="例如：同德創造力資優" maxlength="12"/><button class="btn btn-primary" id="addText">新增</button></div><p class="help">每個字會成為獨立小牌；可在右側分別設定顏色。</p>
-<label class="section-label">或匯入現有字牌圖片</label><label class="upload">⬆ 選擇 PNG／JPG 圖片<input type="file" id="uploadImage" accept="image/png,image/jpeg,image/webp"/></label><div style="margin-top:8px"><button class="btn btn-wide btn-soft" id="loadSample">載入「盛、龍」示範圖片</button></div><p class="help">會嘗試分割彩色方框、保留圖片字形並辨識原始顏色；下方黑字造型標註請自行核對。</p>
+<label class="section-label">或匯入現有字牌圖片</label><label class="upload">⬆ 選擇 PNG／JPG 圖片<input type="file" id="uploadImage" accept="image/png,image/jpeg,image/webp"/></label><div style="margin-top:8px"><button class="btn btn-wide btn-soft" id="loadSample">載入「恐、龍」示範圖片</button></div><p class="help">會分割彩色方框、保留圖片字形與原始顏色。匯入後可在右側「字牌名稱／文字」修正名稱（不會改變原圖筆畫）；下方黑字造型標註請自行核對。</p>
 <hr class="divider"/><label class="section-label">新增文字時的預設值</label>
 <div class="inline-control"><select id="defaultSize" title="尺寸"><option value="21">21 × 21 mm</option><option value="60">60 × 60 mm</option><option value="30">30 × 30 mm</option><option value="120">120 × 120 mm</option><option value="240">240 × 240 mm</option></select><select id="defaultMode" title="造型"><option value="flat">平（齊平）</option><option value="slope">凸10°</option></select></div>
 <div class="row" style="margin-top:12px"><label class="toggle"><input type="checkbox" id="defaultBorder" checked/>顯示外框（可關閉）</label></div>
@@ -30,7 +30,7 @@ header{background:#fff;border-bottom:1px solid var(--line);padding:19px 30px;dis
 <div class="status" id="status" aria-live="polite"></div>
 <div style="padding:0 16px 17px"><button class="btn btn-primary btn-wide" id="exportBtn">檢查設定 → 確認輸出 3MF</button><p class="help" style="text-align:center">輸出前須明確輸入「可以」；未經確認不建立 3MF。</p></div></main>
 <aside class="panel right-panel"><div class="panel-header"><h2>個別字牌設定</h2><span class="pill">STEP 2</span></div><div class="panel-body"><div><label class="section-label">選擇要修改的字牌</label><div class="tile-list" id="tileList"></div></div><div><div id="emptyEditor" class="note">請先建立一張字牌。</div><div id="tileEditor">
-<hr class="divider"/><div class="editor-grid"><div class="full"><label>字牌名稱／文字</label><input id="editLabel" type="text" maxlength="8"/></div><div><label>尺寸（mm）</label><input id="editSize" type="number" min="12" max="240" step="1"/></div><div><label>文字造型</label><select id="editMode"><option value="flat">平（齊平）</option><option value="slope">凸10°</option></select></div><div class="full"><label class="toggle"><input id="editBorder" type="checkbox" checked/>保留外框</label></div><div class="full"><label class="toggle"><input id="editKeychain" type="checkbox"/>鑰匙圈版</label></div><div class="full" id="holeWrap"><label>鑰匙圈孔位</label><select id="editHole"><option value="left">左上</option><option value="center">上方置中</option><option value="right">右上</option></select></div></div>
+<hr class="divider"/><div class="editor-grid"><div class="full"><label>字牌名稱／文字（可自行更改）</label><input id="editLabel" type="text" maxlength="8" title="可修改顯示名稱；圖片筆畫維持原樣"/></div><div><label>尺寸（mm）</label><input id="editSize" type="number" min="12" max="240" step="1"/></div><div><label>文字造型</label><select id="editMode"><option value="flat">平（齊平）</option><option value="slope">凸10°</option></select></div><div class="full"><label class="toggle"><input id="editBorder" type="checkbox" checked/>保留外框</label></div><div class="full"><label class="toggle"><input id="editKeychain" type="checkbox"/>鑰匙圈版</label></div><div class="full" id="holeWrap"><label>鑰匙圈孔位</label><select id="editHole"><option value="left">左上</option><option value="center">上方置中</option><option value="right">右上</option></select></div></div>
 <label class="section-label">個別顏色調整</label><div class="colors"><label class="color-box">底板<input id="editBase" type="color"/></label><label class="color-box">外框<input id="editFrame" type="color"/></label><label class="color-box">文字<input id="editGlyph" type="color"/></label></div>
 <div class="warning" id="imageNotice" hidden style="margin-top:11px">這張字牌來自圖片；修改名稱不會改變原圖筆畫。如需改字形，請刪除後用「輸入文字」新增。</div>
 <div class="footer-actions"><button class="btn" id="duplicateTile">複製此牌</button><button class="btn" id="deleteTile">刪除此牌</button></div></div></div></div></aside>
@@ -396,7 +396,7 @@ async function importImage(file,isSample=false){
         if(hi>=lo)for(let i=lo;i<=hi;i++)bmask[j*MASK_N+i]=1;
       }
       const hex=rgb=>'#'+rgb.map(v=>clamp(Math.round(v),0,255).toString(16).padStart(2,'0')).join('');
-      const label=isSample?['盛','龍'][idx]||`字牌${idx+1}`:`字牌${idx+1}`;
+      const label=isSample?['恐','龍'][idx]||`字牌${idx+1}`:`字牌${idx+1}`;
       loaded.push({id:state.nextId++,label,source:'image',masks:{base:bmask,frame:fmask,glyph:gmask,N:MASK_N},size:isSample?60:21,mode:'flat',border:true,keychain:!isSample,hole:'center',base:'#ffffff',frame:hex(frameRGB),glyph:hex(glyphRGB),font:state.font});
     }
     state.tiles.push(...loaded);state.selected=loaded[0].id;invalidate();
