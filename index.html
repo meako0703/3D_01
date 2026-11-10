@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-Hant-TW"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>字牌生成器｜Bambu P2S AMS</title>
+<html lang="zh-Hant-TW"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>字牌生成器｜Bambu P2S AMS｜直立吊環版</title>
 <style>
 :root{--bg:#eef2f8;--ink:#1a2941;--muted:#67778e;--line:#e2e8f0;--accent:#3566ee;--accent-light:#e9efff;--card:#fff}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,"Microsoft JhengHei","Noto Sans TC",sans-serif;font-size:14px}button,input,select{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}
@@ -25,7 +25,7 @@ header{background:#fff;border-bottom:1px solid var(--line);padding:19px 30px;dis
 </div></aside>
 <main class="panel preview-panel"><div class="panel-header"><div class="preview-header"><h2>字牌預覽</h2><span class="pill" id="count">0 張字牌</span></div><span class="pill" id="groupCount">預計 0 份 3MF</span></div>
 <div class="preview-surface"><canvas id="preview" width="1050" height="710"></canvas></div>
-<div class="preview-footer"><span class="note">此為 CAD 正向頂視排版預覽；正式 3MF 另經網格方向檢查。</span><button id="clearAll" class="btn">清空</button></div>
+<div class="preview-footer"><span class="note">此為 CAD 正向頂視排版預覽；吊環採圓頂、直立兩側、90°接框，正式 3MF 另經網格方向檢查。</span><button id="clearAll" class="btn">清空</button></div>
 <div class="status" id="status" aria-live="polite"></div>
 <div style="padding:0 16px 17px"><button class="btn btn-primary btn-wide" id="exportBtn">檢查設定 → 確認輸出 3MF</button><p class="help" style="text-align:center">輸出前須明確輸入「可以」；未經確認不建立 3MF。</p></div></main>
 <aside class="panel right-panel"><div class="panel-header"><h2>個別字牌設定</h2><span class="pill">STEP 2</span></div><div class="panel-body"><div><label class="section-label">選擇要修改的字牌</label><div class="tile-list" id="tileList"></div></div><div><div id="emptyEditor" class="note">請先建立一張字牌。</div><div id="tileEditor">
@@ -121,18 +121,36 @@ function drawTilePreview(ctx,tile,x,y,scale){
   if(tile.keychain){
     const d=ringDimensions(tile.size,tile.hole);
     const cx=x+d.cx*scale,cy=y-(d.centerY-tile.size)*scale;
+    const r=d.outer*scale;
+    // Photo-matched lug: semicircular crown + two STRAIGHT vertical side walls.
+    // Both side walls meet the plate's horizontal top edge at 90 degrees.
     ctx.fillStyle=tile.frame;
-    ctx.beginPath();ctx.arc(cx,cy,d.outer*scale,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,Math.PI,Math.PI*2,false);
+    ctx.lineTo(cx+r,y+(tile.size-d.bottomY)*scale);
+    ctx.lineTo(cx-r,y+(tile.size-d.bottomY)*scale);
+    ctx.closePath();ctx.fill();
     ctx.fillStyle='#f6f8fc';
     ctx.beginPath();ctx.arc(cx,cy,d.inner*scale,0,Math.PI*2);ctx.fill();
   }
   ctx.drawImage(pic,x,y,sz,sz);
 }
-function hexRGB(h){h=h.replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
+function hexRGB(h){h=h.replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16)];}
 function ringDimensions(size,hole){
   const inner=size<=30?1.8:2.5, outer=size<=30?4:5.5;
-  const cx=hole==='left'?outer+1:hole==='right'?size-outer-1:size/2;
-  return {inner,outer,cx,centerY:size+(size<=30?3:4)};
+  // Keep both vertical legs above the frame's straight top edge, not its corners.
+  const cornerAllowance=size*.155,margin=.3;
+  const left=cornerAllowance+outer+margin;
+  const cx=hole==='left'?left:hole==='right'?size-left:size/2;
+  const centerY=size+(size<=30?2.35:3.2);
+  return {inner,outer,cx,centerY,bottomY:size-.75};
+}
+function isInKeychainLug(x,y,ring){
+  const dx=x-ring.cx,dy=y-ring.centerY;
+  const vertical= Math.abs(dx)<=ring.outer && y>=ring.bottomY && y<=ring.centerY;
+  const crown= y>=ring.centerY && dx*dx+dy*dy<=ring.outer*ring.outer;
+  const hole=dx*dx+dy*dy<ring.inner*ring.inner;
+  return (vertical||crown)&&!hole;
 }
 function groupsForExport(){
   const groups=[];
@@ -387,8 +405,7 @@ function generateVoxelMasks(tile){
     const ring=ringDimensions(tile.size,tile.hole);
     for(let j=0;j<H;j++)for(let i=0;i<N;i++){
       const x=(i+.5)*pitch,y=(H-j-.5)*pitch;
-      const d=Math.hypot(x-ring.cx,y-ring.centerY);
-      if(d<=ring.outer&&d>=ring.inner){base[j*N+i]=1;frame[j*N+i]=1;}
+      if(isInKeychainLug(x,y,ring)){base[j*N+i]=1;frame[j*N+i]=1;}
     }
     const hrow=Math.round((H-.5-ring.centerY/pitch));
     const hcol=Math.floor(ring.cx/pitch);
