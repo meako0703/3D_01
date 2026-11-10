@@ -10,18 +10,19 @@ header{background:#fff;border-bottom:1px solid var(--line);padding:19px 30px;dis
 @media(max-width:1250px){.layout{grid-template-columns:280px minmax(350px,1fr)}.right-panel{grid-column:1/-1}.right-panel .panel-body{display:grid;grid-template-columns:1fr 1fr;gap:22px}.right-panel .panel-body>div{min-width:0}}
 @media(max-width:800px){header{padding:15px}.chip{display:none}.layout{grid-template-columns:1fr;padding:10px}.right-panel{grid-column:auto}.right-panel .panel-body{display:block}.preview-panel{min-height:0}.preview-surface canvas{min-height:300px}.brand h1{font-size:19px}.dialog-footer{flex-wrap:wrap}}
 </style></head><body>
-<header><div class="brand"><div class="logo">字</div><div><h1>3D 字牌生成器</h1><p>字體造型 × 自訂配色 × 鑰匙圈 × AMS 分色 3MF</p></div></div><div class="chip">離線可用 · Bambu P2S / AMS</div></header>
+<header><div class="brand"><div class="logo">字</div><div><h1>3D 字牌生成器</h1><p>字體造型 × 自訂配色 × 鑰匙圈 × AMS 分色 3MF</p></div></div><div class="chip">12–240 mm · Bambu P2S / AMS</div></header>
 <div class="layout">
 <aside class="panel"><div class="panel-header"><h2>建立字牌</h2><span class="pill">STEP 1</span></div><div class="panel-body">
 <label class="section-label">輸入文字</label><div class="textline"><input id="textInput" type="text" placeholder="例如：同德創造力資優" maxlength="12"/><button class="btn btn-primary" id="addText">新增</button></div><p class="help">每個字會成為獨立小牌；可在右側分別設定顏色。</p>
 <label class="section-label">或匯入現有字牌圖片</label><label class="upload">⬆ 選擇 PNG／JPG 圖片<input type="file" id="uploadImage" accept="image/png,image/jpeg,image/webp"/></label><div style="margin-top:8px"><button class="btn btn-wide btn-soft" id="loadSample">載入 405-1.png 示範圖片</button></div><p class="help">會嘗試分割彩色方框、保留圖片字形並辨識原始顏色；下方黑字造型標註請自行核對。</p>
 <hr class="divider"/><label class="section-label">新增文字時的預設值</label>
-<div class="inline-control"><select id="defaultSize" title="尺寸"><option value="21">21 × 21 mm</option><option value="60">60 × 60 mm</option><option value="30">30 × 30 mm</option></select><select id="defaultMode" title="造型"><option value="flat">平（齊平）</option><option value="slope">凸10°</option></select></div>
+<div class="inline-control"><select id="defaultSize" title="尺寸"><option value="21">21 × 21 mm</option><option value="60">60 × 60 mm</option><option value="30">30 × 30 mm</option><option value="120">120 × 120 mm</option><option value="240">240 × 240 mm</option></select><select id="defaultMode" title="造型"><option value="flat">平（齊平）</option><option value="slope">凸10°</option></select></div>
+<div class="row" style="margin-top:12px"><label class="toggle"><input type="checkbox" id="defaultBorder" checked/>顯示外框（可關閉）</label></div>
 <div class="row row-between" style="margin-top:12px"><label class="toggle"><input type="checkbox" id="defaultKeychain" checked/>鑰匙圈版</label><select id="defaultHole" style="max-width:135px"><option value="center">上方置中</option><option value="left">左上</option><option value="right">右上</option></select></div>
 <label class="section-label">快速套用三色</label><div class="colors"><label class="color-box">底板<input type="color" id="defaultBase" value="#ffffff"/></label><label class="color-box">外框<input type="color" id="defaultFrame" value="#ff3939"/></label><label class="color-box">文字<input type="color" id="defaultGlyph" value="#111111"/></label></div>
 <button class="btn btn-wide" id="applyAll" style="margin-top:10px">將三色套用至全部字牌</button>
 <hr class="divider"/><label class="section-label">合併輸出方式</label><select id="groupMode"><option value="same">相同配色自動合併</option><option value="all">全部合併成一份 3MF</option><option value="each">每字獨立一份 3MF</option></select>
-<p class="help">相同配色會共用 AMS 顏色組；不同字牌不會彼此黏合。</p>
+<p class="help">相同配色會共用 AMS 顏色組；關閉外框時不輸出外框實體，鑰匙圈仍保留並使用底板顏色。最大單牌 240 mm，超出平台請分檔。</p>
 </div></aside>
 <main class="panel preview-panel"><div class="panel-header"><div class="preview-header"><h2>字牌預覽</h2><span class="pill" id="count">0 張字牌</span></div><span class="pill" id="groupCount">預計 0 份 3MF</span></div>
 <div class="preview-surface"><canvas id="preview" width="1050" height="710"></canvas></div>
@@ -29,7 +30,7 @@ header{background:#fff;border-bottom:1px solid var(--line);padding:19px 30px;dis
 <div class="status" id="status" aria-live="polite"></div>
 <div style="padding:0 16px 17px"><button class="btn btn-primary btn-wide" id="exportBtn">檢查設定 → 確認輸出 3MF</button><p class="help" style="text-align:center">輸出前須明確輸入「可以」；未經確認不建立 3MF。</p></div></main>
 <aside class="panel right-panel"><div class="panel-header"><h2>個別字牌設定</h2><span class="pill">STEP 2</span></div><div class="panel-body"><div><label class="section-label">選擇要修改的字牌</label><div class="tile-list" id="tileList"></div></div><div><div id="emptyEditor" class="note">請先建立一張字牌。</div><div id="tileEditor">
-<hr class="divider"/><div class="editor-grid"><div class="full"><label>字牌名稱／文字</label><input id="editLabel" type="text" maxlength="8"/></div><div><label>尺寸（mm）</label><input id="editSize" type="number" min="12" max="100" step="1"/></div><div><label>文字造型</label><select id="editMode"><option value="flat">平（齊平）</option><option value="slope">凸10°</option></select></div><div class="full"><label class="toggle"><input id="editKeychain" type="checkbox"/>鑰匙圈版</label></div><div class="full" id="holeWrap"><label>鑰匙圈孔位</label><select id="editHole"><option value="left">左上</option><option value="center">上方置中</option><option value="right">右上</option></select></div></div>
+<hr class="divider"/><div class="editor-grid"><div class="full"><label>字牌名稱／文字</label><input id="editLabel" type="text" maxlength="8"/></div><div><label>尺寸（mm）</label><input id="editSize" type="number" min="12" max="240" step="1"/></div><div><label>文字造型</label><select id="editMode"><option value="flat">平（齊平）</option><option value="slope">凸10°</option></select></div><div class="full"><label class="toggle"><input id="editBorder" type="checkbox" checked/>保留外框</label></div><div class="full"><label class="toggle"><input id="editKeychain" type="checkbox"/>鑰匙圈版</label></div><div class="full" id="holeWrap"><label>鑰匙圈孔位</label><select id="editHole"><option value="left">左上</option><option value="center">上方置中</option><option value="right">右上</option></select></div></div>
 <label class="section-label">個別顏色調整</label><div class="colors"><label class="color-box">底板<input id="editBase" type="color"/></label><label class="color-box">外框<input id="editFrame" type="color"/></label><label class="color-box">文字<input id="editGlyph" type="color"/></label></div>
 <div class="warning" id="imageNotice" hidden style="margin-top:11px">這張字牌來自圖片；修改名稱不會改變原圖筆畫。如需改字形，請刪除後用「輸入文字」新增。</div>
 <div class="footer-actions"><button class="btn" id="duplicateTile">複製此牌</button><button class="btn" id="deleteTile">刪除此牌</button></div></div></div></div></aside>
@@ -40,7 +41,7 @@ header{background:#fff;border-bottom:1px solid var(--line);padding:19px 30px;dis
 const $=s=>document.querySelector(s);
 const $$=s=>Array.from(document.querySelectorAll(s));
 const MASK_N=192;
-const state={tiles:[],selected:null,nextId:1,groupMode:'same',defaultSize:21,defaultKeychain:true,defaultHole:'center',defaultMode:'flat',font:'Microsoft JhengHei',palette:{base:'#ffffff',frame:'#ff3939',glyph:'#111111'},busy:false};
+const state={tiles:[],selected:null,nextId:1,groupMode:'same',defaultSize:21,defaultKeychain:true,defaultBorder:true,defaultHole:'center',defaultMode:'flat',font:'Microsoft JhengHei',palette:{base:'#ffffff',frame:'#ff3939',glyph:'#111111'},busy:false};
 const maxLength=12;
 const fmt=x=>Number(x.toFixed(4)).toString();
 const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
@@ -52,7 +53,7 @@ function addText(text){
   const chars=Array.from(text.trim()).filter(c=>c.trim());
   if(!chars.length){setStatus('請先輸入至少一個字。','warn');return;}
   if(state.tiles.length+chars.length>maxLength){setStatus('單次最多 12 個字牌，請分批輸出。','warn');return;}
-  for(const c of chars){state.tiles.push({id:state.nextId++,label:c,source:'text',size:state.defaultSize,mode:state.defaultMode,keychain:state.defaultKeychain,hole:state.defaultHole,base:state.palette.base,frame:state.palette.frame,glyph:state.palette.glyph,font:state.font});}
+  for(const c of chars){state.tiles.push({id:state.nextId++,label:c,source:'text',size:state.defaultSize,mode:state.defaultMode,border:state.defaultBorder,keychain:state.defaultKeychain,hole:state.defaultHole,base:state.palette.base,frame:state.palette.frame,glyph:state.palette.glyph,font:state.font});}
   state.selected=state.tiles.at(-1).id; invalidate();setStatus(`已加入 ${chars.length} 個文字字牌。`);
 }
 function tileById(id){return state.tiles.find(t=>t.id===id);}
@@ -99,9 +100,33 @@ function resampleMask(src,oldN,newN){
   }
   return out;
 }
+// Stretch the detected outside silhouette to the requested physical size.
+// The previous fixed 3-pixel inset made a nominal 240 mm plate measure only 236.4 mm.
+function normalizeTileBounds(m){
+  const N=m.N;
+  let minx=N,miny=N,maxx=-1,maxy=-1;
+  for(let j=0;j<N;j++)for(let i=0;i<N;i++)if(m.base[j*N+i]){
+    minx=Math.min(minx,i);maxx=Math.max(maxx,i);miny=Math.min(miny,j);maxy=Math.max(maxy,j);
+  }
+  if(maxx<minx||maxy<miny)return m;
+  // Preserve round corners, stroke shapes and glyph positions under the same transform.
+  const out={N};
+  for(const kind of ['base','frame','glyph']){
+    const src=m[kind],dst=new Uint8Array(N*N);
+    for(let j=0;j<N;j++)for(let i=0;i<N;i++){
+      const sx=Math.min(N-1,Math.max(0,Math.floor(minx+(i+.5)*(maxx-minx+1)/N)));
+      const sy=Math.min(N-1,Math.max(0,Math.floor(miny+(j+.5)*(maxy-miny+1)/N)));
+      dst[j*N+i]=src[sy*N+sx];
+    }
+    out[kind]=dst;
+  }
+  return out;
+}
 function masksFor(tile,N=MASK_N){
-  if(tile.source==='image' && tile.masks){return {base:resampleMask(tile.masks.base,tile.masks.N,N),frame:resampleMask(tile.masks.frame,tile.masks.N,N),glyph:resampleMask(tile.masks.glyph,tile.masks.N,N),N};}
-  return renderTextMasks(tile,N);
+  const raw=tile.source==='image' && tile.masks
+   ? {base:resampleMask(tile.masks.base,tile.masks.N,N),frame:resampleMask(tile.masks.frame,tile.masks.N,N),glyph:resampleMask(tile.masks.glyph,tile.masks.N,N),N}
+   : renderTextMasks(tile,N);
+  return normalizeTileBounds(raw);
 }
 function drawTilePreview(ctx,tile,x,y,scale){
   const N=MASK_N,m=masksFor(tile,N);
@@ -111,7 +136,7 @@ function drawTilePreview(ctx,tile,x,y,scale){
   for(let k=0;k<N*N;k++){
     let col=null;
     if(m.base[k])col=base;
-    if(m.frame[k])col=frame;
+    if(tile.border!==false && m.frame[k])col=frame;
     if(m.glyph[k])col=glyph;
     const p=k*4;
     if(col){id.data[p]=col[0];id.data[p+1]=col[1];id.data[p+2]=col[2];id.data[p+3]=255;}
@@ -124,7 +149,7 @@ function drawTilePreview(ctx,tile,x,y,scale){
     const r=d.outer*scale;
     // Photo-matched lug: semicircular crown + two STRAIGHT vertical side walls.
     // Both side walls meet the plate's horizontal top edge at 90 degrees.
-    ctx.fillStyle=tile.frame;
+    ctx.fillStyle=tile.border===false?tile.base:tile.frame;
     ctx.beginPath();
     ctx.arc(cx,cy,r,Math.PI,Math.PI*2,false);
     ctx.lineTo(cx+r,y+(tile.size-d.bottomY)*scale);
@@ -158,7 +183,7 @@ function groupsForExport(){
   if(state.groupMode==='each')return state.tiles.map(t=>[t]);
   const map=new Map();
   for(const t of state.tiles){
-    const key=[t.base,t.frame,t.glyph].map(normalizeHex).join('|');
+    const key=[t.base,t.border===false?'no-frame':t.frame,t.glyph].map(normalizeHex).join('|');
     if(!map.has(key)){map.set(key,[]);groups.push(map.get(key));}
     map.get(key).push(t);
   }
@@ -169,7 +194,7 @@ function refresh(){
   $('#count').textContent=`${state.tiles.length} 張字牌`;
   $('#groupCount').textContent=`預計 ${groupsForExport().length} 份 3MF`;
   $('#exportBtn').disabled=state.tiles.length===0||state.busy;
-  $('#tileList').innerHTML=state.tiles.map(t=>`<button class="tile-item ${t.id===state.selected?'active':''}" data-tile="${t.id}"><span class="tiny-color" style="--c:${t.frame}">${escapeHTML(t.label.slice(0,2))}</span><span class="tile-item-text"><b>${escapeHTML(t.label)}</b><small>${t.size} mm · ${t.mode==='flat'?'平':'凸 10°'} · ${t.keychain?'鑰匙圈':'一般'}</small></span><span class="chevron">›</span></button>`).join('');
+  $('#tileList').innerHTML=state.tiles.map(t=>`<button class="tile-item ${t.id===state.selected?'active':''}" data-tile="${t.id}"><span class="tiny-color" style="--c:${t.border===false?t.glyph:t.frame}">${escapeHTML(t.label.slice(0,2))}</span><span class="tile-item-text"><b>${escapeHTML(t.label)}</b><small>${t.size} mm · ${t.mode==='flat'?'平':'凸 10°'} · ${t.border===false?'無框':'有框'} · ${t.keychain?'鑰匙圈':'一般'}</small></span><span class="chevron">›</span></button>`).join('');
   $$('#tileList .tile-item').forEach(el=>el.onclick=()=>{state.selected=Number(el.dataset.tile);refresh();});
   $('#emptyEditor').hidden=!!selected;
   $('#tileEditor').hidden=!selected;
@@ -177,6 +202,8 @@ function refresh(){
     $('#editLabel').value=selected.label;
     $('#editSize').value=String(selected.size);
     $('#editMode').value=selected.mode;
+    $('#editBorder').checked=selected.border!==false;
+    $('#editFrame').disabled=selected.border===false;
     $('#editKeychain').checked=selected.keychain;
     $('#holeWrap').hidden=!selected.keychain;
     $('#editHole').value=selected.hole;
@@ -221,6 +248,7 @@ function bindUI(){
   $('#textInput').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#addText').click();}};
   $('#defaultSize').onchange=e=>{state.defaultSize=Number(e.target.value);};
   $('#defaultMode').onchange=e=>{state.defaultMode=e.target.value;};
+  $('#defaultBorder').onchange=e=>{state.defaultBorder=e.target.checked;};
   $('#defaultKeychain').onchange=e=>{state.defaultKeychain=e.target.checked;};
   $('#defaultHole').onchange=e=>{state.defaultHole=e.target.value;};
   $('#defaultBase').oninput=e=>{state.palette.base=e.target.value;};
@@ -232,8 +260,9 @@ function bindUI(){
   };
   $('#groupMode').onchange=e=>{state.groupMode=e.target.value;invalidate();};
   $('#editLabel').onchange=e=>updateTile('label',e.target.value.trim()||'字');
-  $('#editSize').onchange=e=>{const v=Number(e.target.value);if(!Number.isFinite(v)||v<12||v>100){setStatus('尺寸需介於 12–100 mm。','warn');refresh();return;}updateTile('size',v);};
+  $('#editSize').onchange=e=>{const v=Number(e.target.value);if(!Number.isFinite(v)||v<12||v>240){setStatus('尺寸需介於 12–240 mm。','warn');refresh();return;}updateTile('size',v);};
   $('#editMode').onchange=e=>updateTile('mode',e.target.value);
+  $('#editBorder').onchange=e=>updateTile('border',e.target.checked);
   $('#editKeychain').onchange=e=>updateTile('keychain',e.target.checked);
   $('#editHole').onchange=e=>updateTile('hole',e.target.value);
   $('#editBase').oninput=e=>updateTile('base',e.target.value);
@@ -255,7 +284,7 @@ function showConfirm(){
   if(!state.tiles.length)return;
   const groups=groupsForExport();
   const lines=groups.map((g,i)=>`${i+1}. ${g.map(t=>t.label).join('、')}（${g.length}片；${g.map(t=>t.mode==='flat'?'平':'凸10°').join(' / ')}）`).join('\n');
-  $('#confirmSummary').textContent=`字牌：${state.tiles.length} 片\n輸出：${groups.length} 份 3MF\n尺寸：${[...new Set(state.tiles.map(t=>t.size+'×'+t.size+' mm'))].join('、')}\n款式：${[...new Set(state.tiles.map(t=>t.keychain?'鑰匙圈':'一般'))].join('、')}\n分組：\n${lines}\n\n白底厚 2 mm；外框／平字頂面 4 mm；凸字向右升高 10°。\n匯出前檢查頂視方向、封閉網格、分色與吊孔。`;
+  $('#confirmSummary').textContent=`字牌：${state.tiles.length} 片\n輸出：${groups.length} 份 3MF\n尺寸：${[...new Set(state.tiles.map(t=>t.size+'×'+t.size+' mm'))].join('、')}\n款式：${[...new Set(state.tiles.map(t=>t.keychain?'鑰匙圈':'一般'))].join('、')}\n外框：${[...new Set(state.tiles.map(t=>t.border===false?'無框':'有框'))].join('、')}\n分組：\n${lines}\n\n底板厚 2 mm；有框版外框／齊平字頂面 4 mm；無框版不生成外框；凸字向右升高 10°。\n匯出前檢查頂視方向、封閉網格、分色與吊孔。`;
   $('#confirmText').value='';$('#confirmDownload').disabled=true;
   $('#confirmModal').classList.add('visible');
 }
@@ -368,14 +397,14 @@ async function importImage(file,isSample=false){
       }
       const hex=rgb=>'#'+rgb.map(v=>clamp(Math.round(v),0,255).toString(16).padStart(2,'0')).join('');
       const label=isSample?['輊','庭','楚','林','苡','澄'][idx]||`字牌${idx+1}`:`字牌${idx+1}`;
-      loaded.push({id:state.nextId++,label,source:'image',masks:{base:bmask,frame:fmask,glyph:gmask,N:MASK_N},size:21,mode:'flat',keychain:true,hole:'center',base:'#ffffff',frame:hex(frameRGB),glyph:hex(glyphRGB),font:state.font});
+      loaded.push({id:state.nextId++,label,source:'image',masks:{base:bmask,frame:fmask,glyph:gmask,N:MASK_N},size:21,mode:'flat',border:true,keychain:true,hole:'center',base:'#ffffff',frame:hex(frameRGB),glyph:hex(glyphRGB),font:state.font});
     }
     state.tiles.push(...loaded);state.selected=loaded[0].id;invalidate();
     setStatus(`已辨識 ${loaded.length} 個字牌。請檢查各字名稱及「平／凸10%」造型（圖片下方標註不自動 OCR）。`);
   }catch(err){setStatus(`匯入失敗：${err.message}`,'warn');console.error(err);}
 }
 
-function resolution(size){return Math.min(240,Math.max(110,Math.ceil(size/(size<=30?.175:.26))));}
+function resolution(size){return Math.min(400,Math.max(110,Math.ceil(size/(size<=30?.175:size<=100?.26:.6))));}
 function repairDiagonalContacts(mask,N,H){
   // A pair of diagonal-only pixels touches along a vertical edge in 3D, creating
   // a non-manifold mesh. Bridge it by one raster cell before constructing the mesh.
@@ -394,27 +423,28 @@ function generateVoxelMasks(tile){
   const extra=Math.ceil((tile.keychain?(tile.size<=30?8:11):0)/pitch);
   const H=N+extra;
   const src=masksFor(tile,N);
-  const base=new Uint8Array(N*H),frame=new Uint8Array(N*H),glyph=new Uint8Array(N*H);
+  const base=new Uint8Array(N*H),frame=new Uint8Array(N*H),glyph=new Uint8Array(N*H),lug=new Uint8Array(N*H);
   for(let j=0;j<N;j++){
     const s=j*N,d=(j+extra)*N;
     base.set(src.base.subarray(s,s+N),d);
-    frame.set(src.frame.subarray(s,s+N),d);
+    if(tile.border!==false)frame.set(src.frame.subarray(s,s+N),d);
     glyph.set(src.glyph.subarray(s,s+N),d);
   }
   if(tile.keychain){
     const ring=ringDimensions(tile.size,tile.hole);
     for(let j=0;j<H;j++)for(let i=0;i<N;i++){
       const x=(i+.5)*pitch,y=(H-j-.5)*pitch;
-      if(isInKeychainLug(x,y,ring)){base[j*N+i]=1;frame[j*N+i]=1;}
+      if(isInKeychainLug(x,y,ring)){base[j*N+i]=1;if(tile.border===false)lug[j*N+i]=1;else frame[j*N+i]=1;}
     }
     const hrow=Math.round((H-.5-ring.centerY/pitch));
     const hcol=Math.floor(ring.cx/pitch);
-    if(base[clamp(hrow,0,H-1)*N+hcol]||frame[clamp(hrow,0,H-1)*N+hcol])throw Error(`${tile.label}：鑰匙圈孔未貫穿，請調整尺寸。`);
+    if(base[clamp(hrow,0,H-1)*N+hcol]||frame[clamp(hrow,0,H-1)*N+hcol]||lug[clamp(hrow,0,H-1)*N+hcol])throw Error(`${tile.label}：鑰匙圈孔未貫穿，請調整尺寸。`);
   }
   repairDiagonalContacts(base,N,H);
   repairDiagonalContacts(frame,N,H);
   repairDiagonalContacts(glyph,N,H);
-  return {base,frame,glyph,N,H,pitch,extra};
+  repairDiagonalContacts(lug,N,H);
+  return {base,frame,glyph,lug,N,H,pitch,extra};
 }
 function createMesh(mask,N,H,pitch,offsetX,offsetY,bottom,topFn){
   const verts=[],faces=[],keys=new Map();
@@ -479,28 +509,34 @@ function compareTopProjection(mesh,mask,N,H,pitch,ox,oy,label){
 }
 function materialName(color){return 'PLA_'+color.slice(1).toUpperCase();}
 function groupLayout(tiles){
-  const placements=[];let x=6,y=6,rowHeight=0;
+  // P2S nominal printable XY is 256 × 256 mm; reserve ≥2 mm edge and ≥5 mm tile gaps.
+  // Lug extends above the tile, so rows account for the full silhouette.
+  const placements=[];let x=2,y=2,rowHeight=0;
   for(const t of tiles){
-    const ext=t.keychain?(t.size<=30?8:11):0;
-    if(x+t.size>220&&x>6){x=6;y+=rowHeight+8;rowHeight=0;}
+    if(t.size>240||t.size<12)throw Error(`${t.label}：尺寸需介於 12–240 mm。`);
+    const ext=t.keychain?(ringDimensions(t.size,t.hole).centerY+ringDimensions(t.size,t.hole).outer-t.size):0;
+    if(x+t.size>254 && x>2){x=2;y+=rowHeight+5;rowHeight=0;}
+    if(y+t.size+ext>254)throw Error('目前合併組超出 P2S 256×256 mm 平台；240 mm 大牌請單獨輸出，或把分組方式改成「每字獨立」。');
     placements.push({tile:t,x,y});
     x+=t.size+5;
     rowHeight=Math.max(rowHeight,t.size+ext);
   }
-  if(y+rowHeight>235)throw Error('字牌超出預設 235 mm 排版範圍，請分批輸出。');
   return placements;
 }
 function build3mf(tiles){
-  const colors=[...new Set(tiles.flatMap(t=>[t.base,t.frame,t.glyph].map(normalizeHex)))];
+  const colors=[...new Set(tiles.flatMap(t=>t.border===false?[t.base,t.glyph]:[t.base,t.frame,t.glyph]).map(normalizeHex))];
   const materials=colors.map(c=>`<m:base name="${materialName(c)}" displaycolor="${c.toUpperCase()}FF"/>`).join('');
   let nextId=2;
   const objects=[],components=[],logs=[];
   for(const {tile,x,y} of groupLayout(tiles)){
     const v=generateVoxelMasks(tile), {N,H,pitch}=v;
-    const allParts=[['base',tile.base,v.base,0,()=>2],['frame',tile.frame,v.frame,2,()=>4]];
+    const allParts=[['base',tile.base,v.base,0,()=>2]];
+    if(tile.border!==false)allParts.push(['frame',tile.frame,v.frame,2,()=>4]);
+    else if(tile.keychain)allParts.push(['lug',tile.base,v.lug,2,()=>4]);
     const gLeft=(()=>{for(let i=0;i<N;i++)for(let j=0;j<H;j++)if(v.glyph[j*N+i])return i*pitch;return 0;})();
     allParts.push(['glyph',tile.glyph,v.glyph,2,xx=>tile.mode==='flat'?4:4+Math.tan(10*Math.PI/180)*Math.max(0,xx-gLeft)]);
     for(const [part,color,mask,zbot,top] of allParts){
+      if(!mask.some(Boolean))continue;
       const mesh=createMesh(mask,N,H,pitch,x,y,zbot,top);
       checkMesh(mesh,`${tile.label} / ${part}`);
       if(part==='glyph')logs.push(`${tile.label}: 頂視字形 IoU ${(compareTopProjection(mesh,mask,N,H,pitch,x,y,tile.label)*100).toFixed(1)}%`);
@@ -569,7 +605,7 @@ async function export3mf(){
 
 window.addEventListener('DOMContentLoaded',()=>{
   bindUI();
-  state.tiles=[{id:state.nextId++,label:'楚',source:'text',size:21,mode:'slope',keychain:true,hole:'center',base:'#ffffff',frame:'#ff3434',glyph:'#111111',font:state.font},{id:state.nextId++,label:'林',source:'text',size:21,mode:'slope',keychain:true,hole:'center',base:'#ffffff',frame:'#ff3434',glyph:'#111111',font:state.font}];
+  state.tiles=[{id:state.nextId++,label:'楚',source:'text',size:21,mode:'slope',border:true,keychain:true,hole:'center',base:'#ffffff',frame:'#ff3434',glyph:'#111111',font:state.font},{id:state.nextId++,label:'林',source:'text',size:21,mode:'slope',border:true,keychain:true,hole:'center',base:'#ffffff',frame:'#ff3434',glyph:'#111111',font:state.font}];
   state.selected=state.tiles[0].id;refresh();setStatus('已載入「楚、林」示範字牌。可修改顏色、尺寸與造型，或上傳圖片。');
 });
 </script></body></html>
