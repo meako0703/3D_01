@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6fb">
+  <meta name="description" content="3D 列印設計工具入口：字牌生成器、Clicker Studio 與圖形浮雕工坊。">
+  <title>3D 列印生成器｜創作入口</title>
+  <style>
+    :root{--ink:#17253d;--muted:#62718a;--line:#e5eaf2;--paper:#f4f6fb;--white:#fff;--blue:#4569e8;--teal:#17877e;--violet:#7959d6}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 12% 0%,#e6edff 0,transparent 36%),radial-gradient(ellipse at 95% 10%,#e6f8f3 0,transparent 32%),var(--paper);color:var(--ink);font-family:Inter,"Noto Sans TC",system-ui,-apple-system,"Microsoft JhengHei",sans-serif}
+    a{color:inherit}.wrap{max-width:1120px;margin:auto;padding:0 26px}
+    header{padding:24px 0}.nav{display:flex;justify-content:space-between;align-items:center;gap:16px}.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.02em}.brand-mark{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:#192a48;color:#fff;font-size:20px;box-shadow:0 8px 18px #1c2c4822}.brand small{display:block;color:var(--muted);font-size:11px;font-weight:600;letter-spacing:.12em;margin-top:2px}.top-tag{padding:9px 13px;border:1px solid #dce4f2;border-radius:99px;background:#ffffffa8;color:#405a9a;font-size:12px;font-weight:700}
+    .hero{padding:65px 0 35px;text-align:center}.eyebrow{color:var(--blue);font-size:12px;letter-spacing:.16em;font-weight:800}.hero h1{font-size:clamp(34px,6vw,58px);line-height:1.12;letter-spacing:-.04em;margin:15px 0}.hero p{max-width:650px;margin:0 auto;color:var(--muted);font-size:16px;line-height:1.8}.hero-note{display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:9px 13px;border-radius:99px;background:#fff;border:1px solid var(--line);font-size:12px;color:#53637c}.dot{width:8px;height:8px;border-radius:50%;background:#2bb18d;box-shadow:0 0 0 4px #2bb18d1b}
+    .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:24px 0 35px}.card{--accent:var(--blue);position:relative;display:flex;flex-direction:column;min-height:330px;padding:23px;background:var(--white);border:1px solid var(--line);border-radius:22px;box-shadow:0 14px 34px #2d42640b;transition:transform .2s ease,box-shadow .2s ease}.card:hover{transform:translateY(-4px);box-shadow:0 20px 45px #2d42641a}.card:nth-child(2){--accent:var(--teal)}.card:nth-child(3){--accent:var(--violet)}.card-top{display:flex;justify-content:space-between;align-items:center}.icon{width:54px;height:54px;border-radius:17px;display:grid;place-items:center;background:color-mix(in srgb,var(--accent) 11%,white);color:var(--accent);font-size:25px;font-weight:800}.index{color:#a2adbd;font-size:11px;letter-spacing:.12em;font-weight:800}.card h2{font-size:21px;margin:22px 0 8px;letter-spacing:-.02em}.card p{margin:0;color:var(--muted);font-size:13px;line-height:1.8}.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:17px}.tags span{border:1px solid var(--line);border-radius:99px;padding:5px 9px;color:#596980;font-size:11px;background:#fafbfe}.open{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:auto;padding:12px 15px;border-radius:12px;background:var(--accent);color:white;text-decoration:none;font-size:13px;font-weight:800}.open:hover{filter:brightness(.95)}.open span{font-size:17px;line-height:12px}
+    .save-note{display:flex;gap:15px;align-items:flex-start;margin:7px 0 62px;padding:19px 21px;background:#eef2ff;border:1px solid #dfe6fc;border-radius:16px}.save-icon{flex:none;width:34px;height:34px;border-radius:11px;background:#fff;display:grid;place-items:center;color:var(--blue);font-weight:900}.save-note strong{display:block;font-size:13px;margin:1px 0 4px}.save-note p{margin:0;color:var(--muted);font-size:12px;line-height:1.7}footer{padding:19px 0 28px;border-top:1px solid var(--line);color:#8793a6;font-size:11px}.foot{display:flex;justify-content:space-between;gap:12px}
+    @media(max-width:800px){.cards{grid-template-columns:1fr}.card{min-height:280px}.hero{padding:48px 0 25px}.save-note{margin-bottom:42px}}@media(max-width:460px){.wrap{padding:0 16px}.top-tag{font-size:10px;padding:7px 9px}.brand-mark{width:38px;height:38px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+<header><div class="wrap nav"><div class="brand"><div class="brand-mark">3D</div><div>PRINT LAB<small>設計工具入口</small></div></div><span class="top-tag">3 個生成器 · 一頁開啟</span></div></header>
+<main class="wrap">
+  <section class="hero">
+    <div class="eyebrow">MAKE IT YOURS</div>
+    <h1>從圖案與想法，<br>開始你的 3D 創作。</h1>
+    <p>選擇一個生成器開始設計。完成後可預覽模型、調整設定並輸出列印檔。</p>
+    <div class="hero-note"><i class="dot"></i> 三個工具皆可用 8 位數存取碼保存並繼續編輯</div>
+  </section>
+  <section class="cards" aria-label="3D 列印生成器">
+    <article class="card">
+      <div class="card-top"><div class="icon">字</div><span class="index">01 / NAMEPLATE</span></div>
+      <h2>字牌生成器</h2>
+      <p>輸入文字或匯入字牌圖片，自訂字牌尺寸、外框、鑰匙圈孔位與各層顏色，並輸出多色 3MF。</p>
+      <div class="tags"><span>文字與圖片</span><span>鑰匙圈</span><span>AMS 分色</span></div>
+      <a class="open" href="https://meako0703.github.io/3D_01/">開啟字牌生成器 <span>↗</span></a>
+    </article>
+    <article class="card">
+      <div class="card-top"><div class="icon">⌘</div><span class="index">02 / CLICKER</span></div>
+      <h2>Clicker Studio</h2>
+      <p>排列按鍵、選擇鍵帽造型，再為每顆按鍵設定顏色與圖案，預覽後輸出 STL 或多色 3MF。</p>
+      <div class="tags"><span>自訂排列</span><span>逐鍵配色</span><span>圖片圖案</span></div>
+      <a class="open" href="https://meako0703.github.io/clicker-studio/">開啟 Clicker Studio <span>↗</span></a>
+    </article>
+    <article class="card">
+      <div class="card-top"><div class="icon">▧</div><span class="index">03 / RELIEF</span></div>
+      <h2>圖形浮雕工坊</h2>
+      <p>上傳黑白或彩色圖片，分析最多 4 色的連通區塊，個別調整區塊高度與顏色，並生成輪廓底板。</p>
+      <div class="tags"><span>原圖比例</span><span>區塊編輯</span><span>10–200 mm</span></div>
+      <a class="open" href="https://meako0703.github.io/pixel-relief-studio/">開啟圖形浮雕工坊 <span>↗</span></a>
+    </article>
+  </section>
+  <aside class="save-note">
+    <div class="save-icon">↻</div>
+    <div><strong>跨裝置繼續設計</strong><p>在生成器中儲存後，請記下畫面顯示的 8 位數存取碼。下次開啟同一個生成器並輸入存取碼，即可載入設計；修改後再次儲存會更新原設計。</p></div>
+  </aside>
+</main>
+<footer><div class="wrap foot"><span>3D PRINT LAB</span><span>把靈感，變成可列印的形狀。</span></div></footer>
+</body>
+</html>
