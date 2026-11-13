@@ -635,7 +635,7 @@ async function cloudSaveDesign(){
   }finally{button.disabled=false}
 }
 async function cloudLoadDesign(){
-  const code=$('#cloudCode').value.trim();if(!/^\\d{8}$/.test(code))throw Error('請輸入 8 位數字存取碼。');
+  const code=$('#cloudCode').value.trim();if(!/^[0-9]{8}$/.test(code))throw Error('請輸入 8 位數字存取碼。');
   $('#cloudMsg').textContent='正在開啟…';
   const response=await fetch(CLOUD_API+'/api/designs/'+code);const payload=await response.json();if(!response.ok)throw Error(payload.error||'開啟失敗。');
   cloudRestore(payload);cloudActiveCode=code;$('#cloudSavedCode').textContent='存取碼：'+code;$('#cloudMsg').textContent='設計已開啟，可修改後再次儲存。';
@@ -643,5 +643,5 @@ async function cloudLoadDesign(){
 function cloudError(error){$('#cloudMsg').textContent=error?.message||'雲端操作失敗。'}
 $('#cloudSave').addEventListener('click',()=>cloudSaveDesign().catch(cloudError));
 $('#cloudLoad').addEventListener('click',()=>cloudLoadDesign().catch(cloudError));
-$('#cloudCode').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\\D/g,'').slice(0,8)});
+$('#cloudCode').addEventListener('input',e=>{e.target.value=e.target.value.replace(/[^0-9]/g,'').slice(0,8)});
 </script></body></html>
