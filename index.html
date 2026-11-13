@@ -9,9 +9,9 @@ header{background:#fff;border-bottom:1px solid var(--line);padding:19px 30px;dis
 .modal{position:fixed;inset:0;background:#17213caa;z-index:20;display:none;align-items:center;justify-content:center;padding:18px}.modal.visible{display:flex}.dialog{width:min(620px,100%);background:white;border-radius:17px;padding:24px;box-shadow:0 30px 70px #12244744}.dialog h2{margin:0 0 7px}.dialog pre{white-space:pre-wrap;background:#f5f7fb;border:1px solid #e4e9f1;border-radius:11px;padding:15px;font-size:12px;line-height:1.7;max-height:350px;overflow:auto}.dialog-footer{display:flex;gap:10px;align-items:center}.dialog-footer input{max-width:150px}.dialog-footer button{flex:1}
 @media(max-width:1250px){.layout{grid-template-columns:280px minmax(350px,1fr)}.right-panel{grid-column:1/-1}.right-panel .panel-body{display:grid;grid-template-columns:1fr 1fr;gap:22px}.right-panel .panel-body>div{min-width:0}}
 @media(max-width:800px){header{padding:15px}.chip{display:none}.layout{grid-template-columns:1fr;padding:10px}.right-panel{grid-column:auto}.right-panel .panel-body{display:block}.preview-panel{min-height:0}.preview-surface canvas{min-height:300px}.brand h1{font-size:19px}.dialog-footer{flex-wrap:wrap}}
-</style></head><body>
+#cloudBar input:focus{outline:2px solid #7296ff}#cloudBar button{cursor:pointer;border-radius:9px;border:1px solid #dce4ef;padding:8px 12px;font-weight:700}#cloudBar .btn-primary{background:#3566ee;border-color:#3566ee;color:#fff}#cloudBar .btn{background:#fff;color:#30415d}@media(max-width:800px){#cloudBar{align-items:flex-start}#cloudMsg{width:100%}}\n</style></head><body>
 <header><div class="brand"><div class="logo">字</div><div><h1>3D 字牌生成器</h1><p>字體造型 × 自訂配色 × 鑰匙圈 × AMS 分色 3MF</p></div></div><div class="chip">12–240 mm · Bambu P2S / AMS</div></header>
-<div class="layout">
+<section id="cloudBar" style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:10px 18px;background:#f7f9fc;border-bottom:1px solid #e2e8f0"><strong>雲端設計檔</strong><button class="btn btn-primary" id="cloudSave">儲存設計</button><label style="font-size:12px">8 位數密碼 <input id="cloudCode" inputmode="numeric" autocomplete="one-time-code" maxlength="8" pattern="[0-9]{8}" style="width:130px;padding:8px;border:1px solid #d7dfeb;border-radius:8px" placeholder="輸入存取碼"></label><button class="btn" id="cloudLoad">開啟設計</button><span id="cloudMsg" role="status" style="font-size:12px;color:#48617f"></span><strong id="cloudSavedCode" style="font-size:16px;color:#315de0"></strong></section><div class="layout">
 <aside class="panel"><div class="panel-header"><h2>建立字牌</h2><span class="pill">STEP 1</span></div><div class="panel-body">
 <label class="section-label">輸入文字</label><div class="textline"><input id="textInput" type="text" placeholder="例如：同德創造力資優" maxlength="12"/><button class="btn btn-primary" id="addText">新增</button></div><p class="help">每個字會成為獨立小牌；可在右側分別設定顏色。</p>
 <label class="section-label">或匯入現有字牌圖片</label><label class="upload">⬆ 選擇 PNG／JPG 圖片<input type="file" id="uploadImage" accept="image/png,image/jpeg,image/webp"/></label><div style="margin-top:8px"><button class="btn btn-wide btn-soft" id="loadSample">載入「恐、龍」示範圖片</button></div><p class="help">會分割彩色方框、保留圖片字形與原始顏色。匯入後可在右側「字牌名稱／文字」修正名稱（不會改變原圖筆畫）；下方黑字造型標註請自行核對。</p>
@@ -608,4 +608,40 @@ window.addEventListener('DOMContentLoaded',()=>{
   // Load the exact two-color example from the uploaded image instead of reconstructing text with a system font.
   $('#loadSample').click();
 });
+
+const CLOUD_API='https://print-design-vault.meako.chatgpt.site';
+let cloudActiveCode='';
+const cloudMaskOut=m=>m?Array.from(m):null;
+function cloudSnapshot(){
+  const copy={...state,tiles:state.tiles.map(t=>({...t,masks:t.masks?Object.fromEntries(Object.entries(t.masks).map(([k,v])=>[k,v instanceof Uint8Array?cloudMaskOut(v):v])):null})),busy:false};
+  return {app:'nameplate',data:{state:copy},name:state.tiles.map(t=>t.label).join('、').slice(0,80)||'未命名字牌'};
+}
+function cloudRestore(payload){
+  if(payload?.app!=='nameplate'||!payload?.data?.state)throw Error('這不是字牌生成器的設計檔。');
+  const saved=payload.data.state;
+  Object.assign(state,saved,{busy:false});
+  state.tiles=(saved.tiles||[]).map(t=>({...t,masks:t.masks?Object.fromEntries(Object.entries(t.masks).map(([k,v])=>[k,(k==='N'?v:new Uint8Array(v))])):null}));
+  $('#defaultSize').value=String(state.defaultSize);$('#defaultMode').value=state.defaultMode;$('#defaultBorder').checked=state.defaultBorder;$('#defaultKeychain').checked=state.defaultKeychain;$('#defaultHole').value=state.defaultHole;
+  $('#defaultBase').value=state.palette.base;$('#defaultFrame').value=state.palette.frame;$('#defaultGlyph').value=state.palette.glyph;$('#groupMode').value=state.groupMode;
+  refresh();
+}
+async function cloudSaveDesign(){
+  if(!state.tiles.length)throw Error('目前沒有字牌可儲存。');
+  const button=$('#cloudSave');button.disabled=true;$('#cloudMsg').textContent='正在儲存…';
+  try{
+    const response=await fetch(CLOUD_API+'/api/designs'+(cloudActiveCode?'/'+cloudActiveCode:''),{method:cloudActiveCode?'PUT':'POST',headers:{'content-type':'application/json'},body:JSON.stringify(cloudSnapshot())});
+    const result=await response.json();if(!response.ok)throw Error(result.error||'儲存失敗。');
+    cloudActiveCode=result.code;$('#cloudCode').value=result.code;$('#cloudSavedCode').textContent='存取碼：'+result.code;$('#cloudMsg').textContent='已儲存；請記下存取碼。';
+  }finally{button.disabled=false}
+}
+async function cloudLoadDesign(){
+  const code=$('#cloudCode').value.trim();if(!/^\\d{8}$/.test(code))throw Error('請輸入 8 位數字存取碼。');
+  $('#cloudMsg').textContent='正在開啟…';
+  const response=await fetch(CLOUD_API+'/api/designs/'+code);const payload=await response.json();if(!response.ok)throw Error(payload.error||'開啟失敗。');
+  cloudRestore(payload);cloudActiveCode=code;$('#cloudSavedCode').textContent='存取碼：'+code;$('#cloudMsg').textContent='設計已開啟，可修改後再次儲存。';
+}
+function cloudError(error){$('#cloudMsg').textContent=error?.message||'雲端操作失敗。'}
+$('#cloudSave').addEventListener('click',()=>cloudSaveDesign().catch(cloudError));
+$('#cloudLoad').addEventListener('click',()=>cloudLoadDesign().catch(cloudError));
+$('#cloudCode').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\\D/g,'').slice(0,8)});
 </script></body></html>
